@@ -112,7 +112,7 @@ jobs:
           cp ~/v8/v8dasm ~/artifacts/v8dasm-$V8_TAG
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: v8-disassembler
           path: ~/artifacts/v8dasm-$V8_TAG
