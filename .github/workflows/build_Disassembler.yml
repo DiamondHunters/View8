@@ -1,0 +1,118 @@
+name: Build V8 Disassembler for Electron
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      V8_TAG: 12.8.374.38
+      ELECTRON_FLAG: "-DV8_COMPRESS_POINTERS -ldl -pthread"
+
+    steps:
+      - name: Setup Environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build clang pkg-config
+
+      - name: Cache depot_tools
+        uses: actions/cache@v3
+        id: cache-depot-tools
+        with:
+          path: ~/depot_tools
+          key: ubuntu-depot_tools
+
+      - name: Clone depot_tools
+        if: steps.cache-depot-tools.outputs.cache-hit != 'true'
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git ~/depot_tools
+
+      - name: Add depot_tools to PATH
+        run: |
+          echo "$HOME/depot_tools" >> $GITHUB_PATH
+          export PATH=~/depot_tools:$PATH
+
+      - name: Cache V8 Source
+        uses: actions/cache@v3
+        id: cache-v8
+        with:
+          path: |
+            ~/v8
+          key: v8-source
+
+      - name: Fetch V8 Codebase
+        if: steps.cache-v8.outputs.cache-hit != 'true'
+        run: |
+          cd ~
+          fetch v8
+
+      - name: Checkout and gclient Sync
+        run: |
+          cd ~/v8
+          git checkout refs/tags/$V8_TAG
+          gclient sync -D
+
+      - name: Apply Patch
+        run: |
+          cd ~
+          wget -q https://raw.githubusercontent.com/j4k0xb/View8/main/Disassembler/v8.patch
+          cd v8
+          git apply ~/v8.patch
+
+      - name: Configure Build Args
+        run: |
+          cd ~/v8
+          file="out.gn/x64.release/args.gn"
+
+          configs=(
+              "dcheck_always_on = false"
+              "is_component_build = false"
+              "is_debug = false"
+              "target_cpu = \"x64\""
+              "use_custom_libcxx = false"
+              "v8_monolithic = true"
+              "v8_use_external_startup_data = false"
+              "v8_static_library = true"
+              "v8_enable_disassembler = true"
+              "v8_enable_object_print = true"
+          )
+
+
+          for line in "${configs[@]}"; do
+              key=$(echo "$line" | awk -F ' = ' '{print $1}')
+              escaped_key=$(sed 's/[][\.^$*\\\/]/\\&/g' <<< "$key") 
+              sed -i.bak -e "/^[[:space:]]*${escaped_key}[[:space:]]*=/c ${line}" "$file"
+
+              if ! grep -q "^[[:space:]]*${escaped_key}[[:space:]]*=" "$file"; then
+                  echo "$file"
+                  echo "$line" >> "$file"
+              fi
+          done
+
+      - name: Build V8 Monolith
+        run: |
+          cd ~/v8
+          ninja -C out.gn/x64.release v8_monolith
+
+      - name: Build Disassembler
+        run: |
+          cd ~/v8
+          wget -q https://raw.githubusercontent.com/j4k0xb/View8/main/Disassembler/v8dasm.cpp
+          clang++ v8dasm.cpp -g -std=c++17 \
+            -Iinclude \
+            -Lout.gn/x64.release/obj \
+            -lv8_libbase -lv8_libplatform -lv8_monolith \
+            -o v8dasm $ELECTRON_FLAG
+
+      - name: Prepare Artifact
+        run: |
+          mkdir -p ~/artifacts
+          cp ~/v8/v8dasm ~/artifacts/v8dasm-$V8_TAG
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: v8-disassembler
+          path: ~/artifacts/v8dasm-$V8_TAG
