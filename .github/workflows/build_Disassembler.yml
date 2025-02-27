@@ -59,7 +59,7 @@ jobs:
           cd ~
           wget -q https://raw.githubusercontent.com/j4k0xb/View8/main/Disassembler/v8.patch
           cd v8
-          git apply ~/v8.patch
+          git apply --3way ~/v8.patch
 
       - name: Configure Build Args
         run: |
