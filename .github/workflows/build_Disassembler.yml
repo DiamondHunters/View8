@@ -59,14 +59,16 @@ jobs:
         id: apply_code
         run: |
           cd ~
-          wget -q https://raw.githubusercontent.com/j4k0xb/View8/main/Disassembler/v8.patch
+          wget -q https://raw.githubusercontent.com/DiamondHunters/View8/refs/heads/main/Disassembler/v8_12.8.374.38.patch
           cd v8
-          git apply --verbose --3way ~/v8.patch
+          git apply --verbose --3way ~/v8_12.8.374.38.patch
 
       - name: Configure Build Args
         if: steps.apply_code.outcome == 'success'
         run: |
           cd ~/v8
+          python3 ./tools/dev/v8gen.py x64.release
+          
           file="out.gn/x64.release/args.gn"
 
           configs=(
