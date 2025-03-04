@@ -51,7 +51,7 @@ jobs:
       - name: Checkout and gclient Sync
         run: |
           cd ~/v8
-          git checkout refs/tags/$V8_TAG
+          git checkout -f refs/tags/$V8_TAG
           gclient sync -D
 
       - name: Apply Patch
