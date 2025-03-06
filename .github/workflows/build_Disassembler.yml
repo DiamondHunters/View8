@@ -43,7 +43,7 @@ jobs:
           key: v8-source
 
       - name: Fetch V8 Codebase
-        if: steps.cache-v8.outputs.cache-hit != 'true'
+      #  if: steps.cache-v8.outputs.cache-hit != 'true'
         run: |
           cd ~
           fetch v8
@@ -51,6 +51,7 @@ jobs:
       - name: Checkout and gclient Sync
         run: |
           cd ~/v8
+          gclient
           git checkout -f refs/tags/$V8_TAG
           gclient sync -D
 
