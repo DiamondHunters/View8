@@ -16,33 +16,38 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ninja-build clang pkg-config
-
-      - name: Clone depot_tools
-        run: |
-          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git ~/depot_tools
-
-      - name: Add depot_tools to PATH
-        run: |
-          echo "$HOME/depot_tools" >> $GITHUB_PATH
-          export PATH=~/depot_tools:$PATH
-
-      - name: Cache V8 Source
+          cd ~
+          mkdir src
+      
+      - name: Cache
         uses: actions/cache@v3
         id: cache-v8
         with:
           path: |
-            ~/v8
-          key: v8-source
+            ~/src
+          key: caches
+          
+      - name: Clone depot_tools
+        run: |
+          cd ~/src
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git ~/src/depot_tools
+
+      - name: Add depot_tools to PATH
+        run: |
+          echo "$HOME/src/depot_tools" >> $GITHUB_PATH
+          export PATH=~/src/depot_tools:$PATH
+
+
 
       - name: Fetch V8 Codebase
         if: steps.cache-v8.outputs.cache-hit != 'true'
         run: |
-          cd ~
+          cd ~/src
           fetch v8
 
       - name: Checkout and gclient Sync
         run: |
-          cd ~/v8
+          cd ~/src/v8
           gclient sync
           git checkout -f refs/tags/$V8_TAG
           gclient sync -D
@@ -53,13 +58,13 @@ jobs:
         run: |
           cd ~
           wget -q https://raw.githubusercontent.com/DiamondHunters/View8/refs/heads/main/Disassembler/v8_12.8.374.38.patch
-          cd v8
+          cd src/v8
           git apply --verbose --3way ~/v8_12.8.374.38.patch
 
       - name: Configure Build Args
         if: steps.apply_code.outcome == 'success'
         run: |
-          cd ~/v8
+          cd ~/src/v8
           python3 ./tools/dev/v8gen.py x64.release
           
           file="out.gn/x64.release/args.gn"
@@ -92,13 +97,13 @@ jobs:
       - name: Build V8 Monolith
         if: steps.apply_code.outcome == 'success'
         run: |
-          cd ~/v8
+          cd ~/src/v8
           ninja -C out.gn/x64.release v8_monolith
 
       - name: Build Disassembler
         if: steps.apply_code.outcome == 'success'
         run: |
-          cd ~/v8
+          cd ~/src/v8
           wget -q https://raw.githubusercontent.com/j4k0xb/View8/main/Disassembler/v8dasm.cpp
           clang++ v8dasm.cpp -g -std=c++17 \
             -Iinclude \
@@ -110,7 +115,7 @@ jobs:
         if: steps.apply_code.outcome == 'success'
         run: |
           mkdir -p ~/artifacts
-          cp ~/v8/v8dasm ~/artifacts/v8dasm-$V8_TAG
+          cp ~/src/v8/v8dasm ~/artifacts/v8dasm-$V8_TAG
 
       - name: Upload Artifact
         if: steps.apply_code.outcome == 'success'
