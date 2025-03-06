@@ -51,7 +51,7 @@ jobs:
       - name: Checkout and gclient Sync
         run: |
           cd ~/v8
-          gclient
+          gclient sync
           git checkout -f refs/tags/$V8_TAG
           gclient sync -D
 
