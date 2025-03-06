@@ -17,15 +17,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ninja-build clang pkg-config
 
-      - name: Cache depot_tools
-        uses: actions/cache@v3
-        id: cache-depot-tools
-        with:
-          path: ~/depot_tools
-          key: ubuntu-depot_tools
-
       - name: Clone depot_tools
-        if: steps.cache-depot-tools.outputs.cache-hit != 'true'
         run: |
           git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git ~/depot_tools
 
