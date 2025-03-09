@@ -1,5 +1,5 @@
 diff --git a/src/diagnostics/objects-printer.cc b/src/diagnostics/objects-printer.cc
-index 68262ec5caf..fbd4d069f6d 100644
+index 68262ec5caf..8b60ce92a05 100644
 --- a/src/diagnostics/objects-printer.cc
 +++ b/src/diagnostics/objects-printer.cc
 @@ -2169,7 +2169,7 @@ void SharedFunctionInfo::SharedFunctionInfoPrint(std::ostream& os) {
@@ -31,7 +31,7 @@ index 68262ec5caf..fbd4d069f6d 100644
 +   // Print array literal members instead of only "<AsmWasmData>"
 +   if (map(cage_base)->instance_type() == ASM_WASM_DATA_TYPE) {
 +     os << "<ArrayBoilerplateDescription> ";
-+     Cast<ArrayBoilerplateDescription>(this)->constant_elements()->HeapObjectShortPrint(os);
++     Cast<ArrayBoilerplateDescription>(*this)->constant_elements()->HeapObjectShortPrint(os);
 +     return;
 +   }
 + 
