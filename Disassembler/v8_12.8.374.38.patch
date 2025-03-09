@@ -1,5 +1,5 @@
 diff --git a/src/diagnostics/objects-printer.cc b/src/diagnostics/objects-printer.cc
-index 68262ec5caf..ed2dccff4f6 100644
+index 68262ec5caf..fbd4d069f6d 100644
 --- a/src/diagnostics/objects-printer.cc
 +++ b/src/diagnostics/objects-printer.cc
 @@ -2169,7 +2169,7 @@ void SharedFunctionInfo::SharedFunctionInfoPrint(std::ostream& os) {
@@ -23,7 +23,7 @@ index 68262ec5caf..ed2dccff4f6 100644
    os << "\n - function_literal_id: " << function_literal_id();
    os << "\n - unique_id: " << unique_id();
    os << "\n - age: " << age();
-@@ -3166,6 +3171,16 @@ void HeapObject::HeapObjectShortPrint(std::ostream& os) {
+@@ -3166,6 +3171,14 @@ void HeapObject::HeapObjectShortPrint(std::ostream& os) {
      os << accumulator.ToCString().get();
      return;
    }
@@ -31,16 +31,14 @@ index 68262ec5caf..ed2dccff4f6 100644
 +   // Print array literal members instead of only "<AsmWasmData>"
 +   if (map(cage_base)->instance_type() == ASM_WASM_DATA_TYPE) {
 +     os << "<ArrayBoilerplateDescription> ";
-+     ArrayBoilerplateDescription::cast(*this)
-+         ->constant_elements()
-+         ->HeapObjectShortPrint(os);
++     Cast<ArrayBoilerplateDescription>(this)->constant_elements()->HeapObjectShortPrint(os);
 +     return;
 +   }
 + 
    switch (map(cage_base)->instance_type()) {
      case MAP_TYPE: {
        Tagged<Map> map = Cast<Map>(*this);
-@@ -3258,14 +3273,23 @@ void HeapObject::HeapObjectShortPrint(std::ostream& os) {
+@@ -3258,14 +3271,23 @@ void HeapObject::HeapObjectShortPrint(std::ostream& os) {
        break;
      case FIXED_ARRAY_TYPE:
        os << "<FixedArray[" << Cast<FixedArray>(*this)->length() << "]>";
@@ -64,7 +62,7 @@ index 68262ec5caf..ed2dccff4f6 100644
        break;
      case BYTE_ARRAY_TYPE:
        os << "<ByteArray[" << Cast<ByteArray>(*this)->length() << "]>";
-@@ -3348,6 +3372,9 @@ void HeapObject::HeapObjectShortPrint(std::ostream& os) {
+@@ -3348,6 +3370,9 @@ void HeapObject::HeapObjectShortPrint(std::ostream& os) {
        } else {
          os << "<SharedFunctionInfo>";
        }
@@ -98,22 +96,23 @@ index 28e40672b19..8e2952337b0 100644
    PrintUC16(accumulator, 0, len);
    accumulator->Add(SuffixForDebugPrint());
 diff --git a/src/snapshot/code-serializer.cc b/src/snapshot/code-serializer.cc
-index 04b71a59ca9..86ca74fc55b 100644
+index 04b71a59ca9..1c3433cc37d 100644
 --- a/src/snapshot/code-serializer.cc
 +++ b/src/snapshot/code-serializer.cc
-@@ -483,6 +483,11 @@ MaybeHandle<SharedFunctionInfo> CodeSerializer::Deserialize(
-     return MaybeHandle<SharedFunctionInfo>();
-   }
+@@ -500,6 +500,12 @@ MaybeHandle<SharedFunctionInfo> CodeSerializer::Deserialize(
  
+   Tagged<Script> script = Cast<Script>(result->script());
+   script->set_deserialized(true);
++
 +  std::cout << "\nStart SharedFunctionInfo\n";
 +  result->SharedFunctionInfoPrint(std::cout);
 +  std::cout << "\nEnd SharedFunctionInfo\n";
 +  std::cout << std::flush;
 +
-   // Check whether the newly deserialized data should be merged into an
-   // existing Script from the Isolate compilation cache. If so, perform
-   // the merge in a single-threaded manner since this deserialization was
-@@ -699,10 +704,7 @@ SerializedCodeData::SerializedCodeData(const std::vector<uint8_t>* payload,
+   BaselineBatchCompileIfSparkplugCompiled(isolate, script);
+   if (v8_flags.profile_deserialization) {
+     double ms = timer.Elapsed().InMillisecondsF();
+@@ -699,10 +705,7 @@ SerializedCodeData::SerializedCodeData(const std::vector<uint8_t>* payload,
  SerializedCodeSanityCheckResult SerializedCodeData::SanityCheck(
      uint32_t expected_ro_snapshot_checksum,
      uint32_t expected_source_hash) const {
