@@ -1,5 +1,5 @@
 diff --git a/src/diagnostics/objects-printer.cc b/src/diagnostics/objects-printer.cc
-index 68262ec5caf..55fb8fed935 100644
+index 68262ec5caf..ed2dccff4f6 100644
 --- a/src/diagnostics/objects-printer.cc
 +++ b/src/diagnostics/objects-printer.cc
 @@ -2169,7 +2169,7 @@ void SharedFunctionInfo::SharedFunctionInfoPrint(std::ostream& os) {
@@ -16,7 +16,7 @@ index 68262ec5caf..55fb8fed935 100644
      os << "<none>";
    }
 +  os << "\nStart BytecodeArray\n";
-+  this->GetActiveBytecodeArray().Disassemble(os);
++  this->GetActiveBytecodeArray(isolate).Disassemble(os);
 +  os << "\nEnd BytecodeArray\n";
 +  os << std::flush;
 +
@@ -29,7 +29,7 @@ index 68262ec5caf..55fb8fed935 100644
    }
 +   
 +   // Print array literal members instead of only "<AsmWasmData>"
-+   if (map(cage_base).instance_type() == ASM_WASM_DATA_TYPE) {
++   if (map(cage_base)->instance_type() == ASM_WASM_DATA_TYPE) {
 +     os << "<ArrayBoilerplateDescription> ";
 +     ArrayBoilerplateDescription::cast(*this)
 +         .constant_elements()
@@ -40,37 +40,36 @@ index 68262ec5caf..55fb8fed935 100644
    switch (map(cage_base)->instance_type()) {
      case MAP_TYPE: {
        Tagged<Map> map = Cast<Map>(*this);
-@@ -3258,14 +3273,24 @@ void HeapObject::HeapObjectShortPrint(std::ostream& os) {
+@@ -3258,14 +3273,23 @@ void HeapObject::HeapObjectShortPrint(std::ostream& os) {
        break;
      case FIXED_ARRAY_TYPE:
        os << "<FixedArray[" << Cast<FixedArray>(*this)->length() << "]>";
 +      os << "\nStart FixedArray\n";
-+      FixedArray::cast(*this).FixedArrayPrint(os);
++      Cast<FixedArray>(*this)->FixedArrayPrint(os);
 +      os << "\nEnd FixedArray\n";
        break;
      case OBJECT_BOILERPLATE_DESCRIPTION_TYPE:
        os << "<ObjectBoilerplateDescription["
           << Cast<ObjectBoilerplateDescription>(*this)->capacity() << "]>";
 +      os << "\nStart ObjectBoilerplateDescription\n";
-+      ObjectBoilerplateDescription::cast(*this)
-+          .ObjectBoilerplateDescriptionPrint(os);
++      Cast<ObjectBoilerplateDescription>(*this)->ObjectBoilerplateDescriptionPrint(os);
 +      os << "\nEnd ObjectBoilerplateDescription\n";
        break;
      case FIXED_DOUBLE_ARRAY_TYPE:
        os << "<FixedDoubleArray[" << Cast<FixedDoubleArray>(*this)->length()
           << "]>";
 +      os << "\nStart FixedDoubleArray\n";
-+      FixedDoubleArray::cast(*this).FixedDoubleArrayPrint(os);
++      Cast<FixedDoubleArray>(*this)->FixedDoubleArrayPrint(os);
 +      os << "\nEnd FixedDoubleArray\n";
        break;
      case BYTE_ARRAY_TYPE:
        os << "<ByteArray[" << Cast<ByteArray>(*this)->length() << "]>";
-@@ -3348,6 +3373,9 @@ void HeapObject::HeapObjectShortPrint(std::ostream& os) {
+@@ -3348,6 +3372,9 @@ void HeapObject::HeapObjectShortPrint(std::ostream& os) {
        } else {
          os << "<SharedFunctionInfo>";
        }
 +      os << "\nStart SharedFunctionInfo\n";
-+      shared.SharedFunctionInfoPrint(os);
++      shared->SharedFunctionInfoPrint(os);
 +      os << "\nEnd SharedFunctionInfo\n";
        break;
      }
