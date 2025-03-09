@@ -16,7 +16,7 @@ index 68262ec5caf..ed2dccff4f6 100644
      os << "<none>";
    }
 +  os << "\nStart BytecodeArray\n";
-+  this->GetActiveBytecodeArray(isolate).Disassemble(os);
++  this->GetActiveBytecodeArray(isolate)->Disassemble(os);
 +  os << "\nEnd BytecodeArray\n";
 +  os << std::flush;
 +
@@ -32,8 +32,8 @@ index 68262ec5caf..ed2dccff4f6 100644
 +   if (map(cage_base)->instance_type() == ASM_WASM_DATA_TYPE) {
 +     os << "<ArrayBoilerplateDescription> ";
 +     ArrayBoilerplateDescription::cast(*this)
-+         .constant_elements()
-+         .HeapObjectShortPrint(os);
++         ->constant_elements()
++         ->HeapObjectShortPrint(os);
 +     return;
 +   }
 + 
