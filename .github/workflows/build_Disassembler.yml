@@ -105,7 +105,7 @@ jobs:
         run: |
           cd ~/src/v8
           wget -q https://raw.githubusercontent.com/j4k0xb/View8/main/Disassembler/v8dasm.cpp
-          clang++ v8dasm.cpp -g -std=c++17 \
+          clang++ v8dasm.cpp -g -std=c++20 \
             -Iinclude \
             -Lout.gn/x64.release/obj \
             -lv8_libbase -lv8_libplatform -lv8_monolith \
