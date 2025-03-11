@@ -23,10 +23,7 @@ using namespace v8;
 static Isolate* isolate = nullptr;
 
 static void loadBytecode(uint8_t* bytecodeBuffer, int length) {
-  // Create a handle scope to keep the temporary object references.
   HandleScope handle_scope(isolate);
-  
-  // Create a context for script compilation and execution
   Local<Context> context = Context::New(isolate);
   Context::Scope context_scope(context);
 
@@ -37,8 +34,8 @@ static void loadBytecode(uint8_t* bytecodeBuffer, int length) {
   // Create dummy source.
   Local<String> resource_name = 
       String::NewFromUtf8(isolate, "code.jsc").ToLocalChecked();
-  ScriptOrigin origin(isolate, resource_name);
-  
+  ScriptOrigin origin(resource_name);  // 修改这里，移除 isolate 参数
+
   Local<String> source_string = 
       String::NewFromUtf8(isolate, "\"ಠ_ಠ\"").ToLocalChecked();
   
@@ -47,7 +44,7 @@ static void loadBytecode(uint8_t* bytecodeBuffer, int length) {
   // Compile code from code cache to print disassembly.
   MaybeLocal<UnboundScript> script = ScriptCompiler::CompileUnboundScript(
       isolate, &source, ScriptCompiler::kConsumeCodeCache);
-      
+
   if (!script.IsEmpty()) {
     Local<UnboundScript> local_script = script.ToLocalChecked();
     Local<Script> bound_script = local_script->BindToCurrentContext();
@@ -92,5 +89,12 @@ int main(int argc, char* argv[]) {
   std::vector<char> data;
   readAllBytes(argv[1], data);
   loadBytecode((uint8_t*)data.data(), data.size());
+
+  // Cleanup
+  isolate->Dispose();
+  V8::Dispose();
+  V8::DisposePlatform();
+  delete create_params.array_buffer_allocator;
+
   return 0;
 }
