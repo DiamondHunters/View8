@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "libplatform/libplatform.h"
 #include "v8.h"
@@ -22,18 +23,36 @@ using namespace v8;
 static Isolate* isolate = nullptr;
 
 static void loadBytecode(uint8_t* bytecodeBuffer, int length) {
+  // Create a handle scope to keep the temporary object references.
+  HandleScope handle_scope(isolate);
+  
+  // Create a context for script compilation and execution
+  Local<Context> context = Context::New(isolate);
+  Context::Scope context_scope(context);
+
   // Load code into code cache.
   ScriptCompiler::CachedData* cached_data =
       new ScriptCompiler::CachedData(bytecodeBuffer, length);
 
   // Create dummy source.
-  ScriptOrigin origin(isolate, String::NewFromUtf8Literal(isolate, "code.jsc"));
-  ScriptCompiler::Source source(String::NewFromUtf8Literal(isolate, "\"ಠ_ಠ\""),
-                                origin, cached_data);
+  Local<String> resource_name = 
+      String::NewFromUtf8(isolate, "code.jsc").ToLocalChecked();
+  ScriptOrigin origin(isolate, resource_name);
+  
+  Local<String> source_string = 
+      String::NewFromUtf8(isolate, "\"ಠ_ಠ\"").ToLocalChecked();
+  
+  ScriptCompiler::Source source(source_string, origin, cached_data);
 
   // Compile code from code cache to print disassembly.
   MaybeLocal<UnboundScript> script = ScriptCompiler::CompileUnboundScript(
       isolate, &source, ScriptCompiler::kConsumeCodeCache);
+      
+  if (!script.IsEmpty()) {
+    Local<UnboundScript> local_script = script.ToLocalChecked();
+    Local<Script> bound_script = local_script->BindToCurrentContext();
+    bound_script->Run(context).ToLocalChecked();
+  }
 }
 
 static void readAllBytes(const std::string& file, std::vector<char>& buffer) {
@@ -50,6 +69,11 @@ static void readAllBytes(const std::string& file, std::vector<char>& buffer) {
 }
 
 int main(int argc, char* argv[]) {
+  if (argc < 2) {
+    std::cout << "Please provide a file path as argument" << std::endl;
+    return 1;
+  }
+
   V8::SetFlagsFromString("--no-lazy --no-flush-bytecode");
 
   V8::InitializeICU();
@@ -68,4 +92,5 @@ int main(int argc, char* argv[]) {
   std::vector<char> data;
   readAllBytes(argv[1], data);
   loadBytecode((uint8_t*)data.data(), data.size());
+  return 0;
 }
