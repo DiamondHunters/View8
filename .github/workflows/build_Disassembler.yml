@@ -101,6 +101,8 @@ jobs:
           ninja -C out.gn/x64.release v8_monolith
 
       - name: Build Disassembler
+        continue-on-error: true
+        id: build_disassembler
         if: steps.apply_code.outcome == 'success'
         run: |
           cd ~/src/v8
@@ -112,13 +114,13 @@ jobs:
             -o v8dasm $ELECTRON_FLAG
 
       - name: Prepare Artifact
-        if: steps.apply_code.outcome == 'success'
+        if: ${{ (steps.build_disassembler.outcome == 'success') && (steps.apply_code.outcome == 'success') }}
         run: |
           mkdir -p ~/artifacts
           cp ~/src/v8/v8dasm ~/artifacts/v8dasm-$V8_TAG
 
       - name: Upload Artifact
-        if: steps.apply_code.outcome == 'success'
+        if: ${{ (steps.build_disassembler.outcome == 'success') && (steps.apply_code.outcome == 'success') }}
         uses: actions/upload-artifact@v4
         with:
           name: v8-disassembler
