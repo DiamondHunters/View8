@@ -28,6 +28,7 @@ jobs:
           key: caches
           
       - name: Clone depot_tools
+        if: steps.cache-v8.outputs.cache-hit != 'true'
         run: |
           cd ~/src
           git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git ~/src/depot_tools
