@@ -107,7 +107,7 @@ jobs:
         if: steps.apply_code.outcome == 'success'
         run: |
           cd ~/src/v8
-          wget -q https://raw.githubusercontent.com/DiamondHunters/View8/main/Disassembler/v8dasm.cpp
+          wget -q https://raw.githubusercontent.com/DiamondHunters/View8/main/Disassembler/v8dasm.cpp -O v8dasm.cpp
           clang++ v8dasm.cpp -g -std=c++20 \
             -Iinclude \
             -Lout.gn/x64.release/obj \
