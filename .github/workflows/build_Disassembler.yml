@@ -118,11 +118,11 @@ jobs:
         if: ${{ (steps.build_disassembler.outcome == 'success') && (steps.apply_code.outcome == 'success') }}
         run: |
           mkdir -p ~/artifacts
-          cp ~/src/v8/v8dasm ~/artifacts/v8dasm-$V8_TAG
+          tar -zcvf ~/artifacts/v8dasm.tar.gz ~/src/v8/v8dasm
 
       - name: Upload Artifact
         if: ${{ (steps.build_disassembler.outcome == 'success') && (steps.apply_code.outcome == 'success') }}
         uses: actions/upload-artifact@v4
         with:
           name: v8-disassembler
-          path: ~/artifacts/v8dasm-$V8_TAG
+          path: ~/artifacts/v8dasm.tar.gz
