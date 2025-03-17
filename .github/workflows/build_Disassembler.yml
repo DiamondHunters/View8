@@ -9,7 +9,7 @@ jobs:
 
     env:
       V8_TAG: 12.8.374.38
-      ELECTRON_FLAG: "-DV8_COMPRESS_POINTERS -ldl -pthread"
+      ELECTRON_FLAG: "-DV8_COMPRESS_POINTERS -DV8_ENABLE_SANDBOX -ldl -pthread"
 
     steps:
       - name: Setup Environment
@@ -81,6 +81,7 @@ jobs:
               "v8_static_library = true"
               "v8_enable_disassembler = true"
               "v8_enable_object_print = true"
+               #"v8_enable_sandbox = false"
           )
 
 
