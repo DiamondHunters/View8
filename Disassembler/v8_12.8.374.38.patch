@@ -99,19 +99,6 @@ diff --git a/src/snapshot/code-serializer.cc b/src/snapshot/code-serializer.cc
 index 04b71a59ca9..1c3433cc37d 100644
 --- a/src/snapshot/code-serializer.cc
 +++ b/src/snapshot/code-serializer.cc
-@@ -500,6 +500,12 @@ MaybeHandle<SharedFunctionInfo> CodeSerializer::Deserialize(
- 
-   Tagged<Script> script = Cast<Script>(result->script());
-   script->set_deserialized(true);
-+
-+  std::cout << "\nStart SharedFunctionInfo\n";
-+  result->SharedFunctionInfoPrint(std::cout);
-+  std::cout << "\nEnd SharedFunctionInfo\n";
-+  std::cout << std::flush;
-+
-   BaselineBatchCompileIfSparkplugCompiled(isolate, script);
-   if (v8_flags.profile_deserialization) {
-     double ms = timer.Elapsed().InMillisecondsF();
 @@ -699,10 +705,7 @@ SerializedCodeData::SerializedCodeData(const std::vector<uint8_t>* payload,
  SerializedCodeSanityCheckResult SerializedCodeData::SanityCheck(
      uint32_t expected_ro_snapshot_checksum,
